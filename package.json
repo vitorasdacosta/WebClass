@@ -1,0 +1,33 @@
+{
+  "name": "webclass",
+  "version": "1.0.0",
+  "description": "Web App para controle de diário de classe, organização de nomes em listas, controle de equipamentos por categoria, controle de animais do rebanho, frequência.",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vitorasdacosta/WebClass.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vitorasdacosta/WebClass/issues"
+  },
+  "homepage": "https://github.com/vitorasdacosta/WebClass#readme",
+  "dependencies": {
+    "lucide-react": "^1.45.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

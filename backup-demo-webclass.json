@@ -1,0 +1,127 @@
+{
+  "students": [
+    { "id": "std-1", "name": "Ana Beatriz Souza", "phone": "(11) 98765-4321", "active": true },
+    { "id": "std-2", "name": "Carlos Eduardo Pereira", "phone": "(11) 97654-3210", "active": true },
+    { "id": "std-3", "name": "Fernanda Lima Santos", "phone": "(21) 99888-7766", "active": true },
+    { "id": "std-4", "name": "Gabriel Ferreira Ramos", "phone": "(31) 98456-1122", "active": true },
+    { "id": "std-5", "name": "Juliana Martins Silva", "phone": "(11) 99123-4567", "active": true },
+    { "id": "std-6", "name": "Lucas Henrique Alves", "phone": "(41) 98877-6655", "active": true },
+    { "id": "std-7", "name": "Mariana Ribeiro Costa", "phone": "(71) 99345-6789", "active": true },
+    { "id": "std-8", "name": "Pedro Rocha Barbosa", "phone": "(81) 98765-1234", "active": true },
+    { "id": "std-9", "name": "Rodrigo Mendes Carvalho", "phone": "(11) 97111-2233", "active": true },
+    { "id": "std-10", "name": "Sofia Almeida Castro", "phone": "(19) 99555-4433", "active": true }
+  ],
+  "classes": [
+    {
+      "id": "cls-1",
+      "date": "2026-08-10",
+      "topic": "Fundamentos de Gestão e Liderança de Equipes",
+      "lecturer": "Prof. Dr. Ricardo Fontana",
+      "texts": "Capítulos 1 e 2 da apostila; Estudo de caso Harvard sobre liderança adaptativa.",
+      "attendance": {
+        "std-1": true,
+        "std-2": true,
+        "std-3": true,
+        "std-4": false,
+        "std-5": true,
+        "std-6": true,
+        "std-7": true,
+        "std-8": false,
+        "std-9": true,
+        "std-10": true
+      },
+      "day": 10,
+      "month": 8,
+      "year": 2026
+    },
+    {
+      "id": "cls-2",
+      "date": "2026-08-17",
+      "topic": "Comunicação Assertiva e Resolução de Conflitos",
+      "lecturer": "Profa. Ma. Helena Vasconcelos",
+      "texts": "Os 4 Pilares da CNV no ambiente profissional; Dinâmica prática em duplas.",
+      "attendance": {
+        "std-1": true,
+        "std-2": true,
+        "std-3": false,
+        "std-4": true,
+        "std-5": true,
+        "std-6": true,
+        "std-7": true,
+        "std-8": true,
+        "std-9": true,
+        "std-10": false
+      },
+      "day": 17,
+      "month": 8,
+      "year": 2026
+    },
+    {
+      "id": "cls-3",
+      "date": "2026-08-24",
+      "topic": "Planejamento Estratégico e Metodologia OKR",
+      "lecturer": "Prof. Dr. Ricardo Fontana",
+      "texts": "Módulo 3: Definição de Objetivos e Resultados-Chave; Planilha modelo de metas.",
+      "attendance": {
+        "std-1": true,
+        "std-2": true,
+        "std-3": true,
+        "std-4": true,
+        "std-5": true,
+        "std-6": false,
+        "std-7": true,
+        "std-8": true,
+        "std-9": true,
+        "std-10": true
+      },
+      "day": 24,
+      "month": 8,
+      "year": 2026
+    },
+    {
+      "id": "cls-4",
+      "date": "2026-08-31",
+      "topic": "Tomada de Decisão Baseada em Dados e Indicadores",
+      "lecturer": "Prof. Me. André Calheiros",
+      "texts": "Análise de dashboards gerenciais e mensuração de KPIs de produtividade.",
+      "attendance": {
+        "std-1": true,
+        "std-2": false,
+        "std-3": true,
+        "std-4": true,
+        "std-5": true,
+        "std-6": true,
+        "std-7": true,
+        "std-8": true,
+        "std-9": false,
+        "std-10": true
+      },
+      "day": 31,
+      "month": 8,
+      "year": 2026
+    },
+    {
+      "id": "cls-5",
+      "date": "2026-09-08",
+      "topic": "Apresentação dos Projetos Práticos e Avaliação Final",
+      "lecturer": "Prof. Dr. Ricardo Fontana e Banca Convidada",
+      "texts": "Rubrica de avaliação por competências; Entrega dos planos de ação individuais.",
+      "attendance": {
+        "std-1": true,
+        "std-2": true,
+        "std-3": true,
+        "std-4": true,
+        "std-5": true,
+        "std-6": true,
+        "std-7": true,
+        "std-8": true,
+        "std-9": true,
+        "std-10": true
+      },
+      "day": 8,
+      "month": 9,
+      "year": 2026
+    }
+  ],
+  "exportedAt": "2026-09-11T20:35:00.000Z"
+}
