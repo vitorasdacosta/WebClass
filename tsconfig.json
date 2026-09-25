@@ -14,5 +14,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["webclass.tsx", "main.tsx"]
+  "include": ["src/**/*", "webclass.tsx", "main.tsx"]
 }

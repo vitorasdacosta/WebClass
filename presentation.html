@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vídeo de Apresentação WebClass - 30 Segundos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #090d16;
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+  <div class="max-w-4xl w-full bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-slate-800 shadow-2xl">
+    
+    <!-- Top Header & Controls -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-slate-800">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h1 class="text-xl font-bold tracking-tight text-white">Apresentação WebClass (30s)</h1>
+        </div>
+        <p class="text-xs text-slate-400 mt-0.5">Vídeo demonstrativo renderizado em 60 FPS • 1280x720 HD</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btnPlay" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer">
+          ▶ Reiniciar Vídeo
+        </button>
+        <a id="btnDownload" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer">
+          ⬇ Baixar Vídeo (.webm)
+        </a>
+      </div>
+    </div>
+
+    <!-- Canvas Container (16:9) -->
+    <div class="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-inner">
+      <canvas id="videoCanvas" width="1280" height="720" class="w-full h-full block"></canvas>
+      
+      <!-- Overlay Countdown & Status -->
+      <div class="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/60 text-xs font-mono font-bold flex items-center gap-2">
+        <span id="recordingBadge" class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+        <span id="timeDisplay">00:00 / 00:30</span>
+      </div>
+
+      <div id="statusAlert" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-xl border border-emerald-500/40 text-emerald-400 text-xs font-semibold hidden">
+        ✓ Gravação finalizada! Vídeo de 30 segundos pronto para download.
+      </div>
+    </div>
+
+    <!-- Timeline Progress Bar -->
+    <div class="mt-4">
+      <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+        <div id="progressBar" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 h-full w-0 transition-all duration-75"></div>
+      </div>
+      <div class="flex justify-between text-[11px] font-mono text-slate-500 mt-1.5">
+        <span>00:00</span>
+        <span class="text-slate-400 font-semibold" id="slideName">Abertura</span>
+        <span>00:30</span>
+      </div>
+    </div>
+
+    <!-- Informações sobre as Cenas -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-6 text-center text-xs">
+      <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-800">
+        <span class="text-[10px] text-blue-400 font-bold block">0s - 5s</span>
+        <span class="text-slate-300 font-medium text-[11px]">Abertura</span>
+      </div>
+      <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-800">
+        <span class="text-[10px] text-indigo-400 font-bold block">5s - 11s</span>
+        <span class="text-slate-300 font-medium text-[11px]">Dashboard</span>
+      </div>
+      <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-800">
+        <span class="text-[10px] text-emerald-400 font-bold block">11s - 17s</span>
+        <span class="text-slate-300 font-medium text-[11px]">Alunos & Busca</span>
+      </div>
+      <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-800">
+        <span class="text-[10px] text-amber-400 font-bold block">17s - 24s</span>
+        <span class="text-slate-300 font-medium text-[11px]">Chamada Interativa</span>
+      </div>
+      <div class="col-span-2 sm:col-span-1 p-2.5 rounded-xl bg-slate-800/40 border border-slate-800">
+        <span class="text-[10px] text-rose-400 font-bold block">24s - 30s</span>
+        <span class="text-slate-300 font-medium text-[11px]">Relatório & CSV</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const canvas = document.getElementById('videoCanvas');
+    const ctx = canvas.getContext('2d');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const progressBar = document.getElementById('progressBar');
+    const slideName = document.getElementById('slideName');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnDownload = document.getElementById('btnDownload');
+    const statusAlert = document.getElementById('statusAlert');
+    const recordingBadge = document.getElementById('recordingBadge');
+
+    const TOTAL_DURATION = 30; // 30 segundos
+    let startTime = null;
+    let isRunning = false;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordedBlob = null;
+
+    // Utilitário para desenhar retângulos com cantos arredondados
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    // Função de interpolação suave (Ease Out Cubic)
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function render(time) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fundo em Gradiente Elegante
+      const bgGrad = ctx.createRadialGradient(640, 360, 50, 640, 360, 720);
+      bgGrad.addColorStop(0, '#131b2e');
+      bgGrad.addColorStop(1, '#060a12');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Linhas de Grade de Fundo Sutil
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 60) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 60) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Barra superior da interface (Header Simulado)
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(0, 0, canvas.width, 64);
+      ctx.fillStyle = '#2563eb';
+      roundRect(ctx, 40, 16, 32, 32, 8);
+      ctx.fill();
+      
+      // Ícone do livro no Header
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText('📖', 46, 38);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText('WebClass', 82, 38);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 13px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText('Gestão Escolar Simplificada', 180, 38);
+
+      // Badges do Header
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.2)';
+      roundRect(ctx, canvas.width - 240, 18, 200, 28, 14);
+      ctx.fill();
+      ctx.fillStyle = '#60a5fa';
+      ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText('✨ Modo Demonstração', canvas.width - 215, 36);
+
+      // --- CENA 1: ABERTURA (0s - 5s) ---
+      if (time < 5) {
+        slideName.textContent = 'Cena 1: Abertura';
+        const progress = Math.min(time / 1.5, 1);
+        const ease = easeOutCubic(progress);
+
+        const alpha = time < 4.2 ? ease : Math.max(0, (5 - time) / 0.8);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        // Glow central
+        const glow = ctx.createRadialGradient(640, 340, 10, 640, 340, 260);
+        glow.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+        glow.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(640, 340, 260, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Logo Grande
+        const logoY = 250 - (1 - ease) * 40;
+        ctx.fillStyle = '#1d4ed8';
+        roundRect(ctx, 640 - 45, logoY - 45, 90, 90, 24);
+        ctx.fill();
+        ctx.strokeStyle = '#60a5fa';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.font = '44px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('📖', 640 - 24, logoY + 16);
+
+        // Título Principal
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 48px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('WebClass', 640, logoY + 100);
+
+        // Subtítulo
+        ctx.fillStyle = '#93c5fd';
+        ctx.font = '600 22px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Diário de Classe, Frequência & Relatórios em Tempo Real', 640, logoY + 140);
+
+        // Badges Tecnológicas
+        const badges = ['React 19', 'TypeScript', 'Modularizado em src/', 'Offline-First', 'Exportação CSV'];
+        const totalW = badges.length * 135;
+        let startX = 640 - totalW / 2;
+
+        badges.forEach((b, i) => {
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+          roundRect(ctx, startX + i * 140, logoY + 190, 125, 34, 12);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = '#cbd5e1';
+          ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(b, startX + i * 140 + 62, logoY + 212);
+        });
+
+        ctx.restore();
+      }
+
+      // --- CENA 2: DASHBOARD & MÉTRICAS (5s - 11s) ---
+      else if (time < 11) {
+        slideName.textContent = 'Cena 2: Dashboard & Métricas';
+        const sceneTime = time - 5;
+        const progress = Math.min(sceneTime / 1.2, 1);
+        const ease = easeOutCubic(progress);
+        const alpha = sceneTime < 5.2 ? 1 : Math.max(0, (6 - sceneTime) / 0.8);
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        // Título da View
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('PAINEL DE CONTROLE GERAL', 80, 110);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 28px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Visão Instantânea da Turma e Frequência', 80, 145);
+
+        // Card 1: Alunos Cadastrados
+        const card1Y = 180 + (1 - ease) * 30;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        roundRect(ctx, 80, card1Y, 340, 180, 20);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#3b82f6';
+        roundRect(ctx, 105, card1Y + 25, 42, 42, 12);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('👥', 115, card1Y + 52);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Alunos Cadastrados', 160, card1Y + 45);
+
+        // Contador animado
+        const studentCount = Math.min(Math.round(sceneTime * 3), 10);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 48px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(studentCount.toString(), 105, card1Y + 125);
+        ctx.fillStyle = '#10b981';
+        ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('● 100% ativos na turma', 105, card1Y + 155);
+
+        // Card 2: Aulas Registradas
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        roundRect(ctx, 470, card1Y, 340, 180, 20);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#10b981';
+        roundRect(ctx, 495, card1Y + 25, 42, 42, 12);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('📅', 505, card1Y + 52);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Aulas Realizadas', 550, card1Y + 45);
+
+        const classCount = Math.min(Math.round(sceneTime * 1.5), 5);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 48px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(classCount.toString(), 495, card1Y + 125);
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('● Diário 100% atualizado', 495, card1Y + 155);
+
+        // Card 3: Taxa Média de Frequência
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        roundRect(ctx, 860, card1Y, 340, 180, 20);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#6366f1';
+        roundRect(ctx, 885, card1Y + 25, 42, 42, 12);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('📈', 895, card1Y + 52);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Frequência Média', 940, card1Y + 45);
+
+        const freqVal = Math.min(Math.round(sceneTime * 25), 84);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 48px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(`${freqVal}%`, 885, card1Y + 125);
+        ctx.fillStyle = '#a5b4fc';
+        ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('● Média ponderada da turma', 885, card1Y + 155);
+
+        // Banner inferior da última aula
+        const lastClassY = card1Y + 205;
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.6)';
+        roundRect(ctx, 80, lastClassY, 1120, 100, 16);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('ÚLTIMA AULA: 08/09/2026 • PROF. DR. RICARDO FONTANA', 105, lastClassY + 32);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Apresentação dos Projetos Práticos e Avaliação Final', 105, lastClassY + 62);
+
+        // Badge de Presença da Última Aula
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+        roundRect(ctx, 1010, lastClassY + 30, 165, 40, 12);
+        ctx.fill();
+        ctx.strokeStyle = '#10b981';
+        ctx.stroke();
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('✓ 10 Presentes (100%)', 1022, lastClassY + 55);
+
+        ctx.restore();
+      }
+
+      // --- CENA 3: ALUNOS & BUSCA INSTANTÂNEA (11s - 17s) ---
+      else if (time < 17) {
+        slideName.textContent = 'Cena 3: Gestão de Alunos & Busca';
+        const sceneTime = time - 11;
+        const progress = Math.min(sceneTime / 1.2, 1);
+        const ease = easeOutCubic(progress);
+        const alpha = sceneTime < 5.2 ? 1 : Math.max(0, (6 - sceneTime) / 0.8);
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#10b981';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('CADASTRO E ORGANIZAÇÃO', 80, 110);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 28px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Lista Inteligente com Busca Instantânea', 80, 145);
+
+        // Barra de Busca animada
+        const searchY = 175 + (1 - ease) * 20;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        roundRect(ctx, 80, searchY, 1120, 52, 14);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '16px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('🔍', 100, searchY + 33);
+
+        // Texto digitado na busca simulado
+        const searchText = sceneTime > 1 ? 'Ana' : '';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(searchText || 'Digite para buscar aluno...', 130, searchY + 33);
+
+        // Linhas de Alunos
+        const studentsList = [
+          { name: 'Ana Beatriz Souza', phone: '(11) 98765-4321', active: true },
+          { name: 'Carlos Eduardo Pereira', phone: '(11) 97654-3210', active: true },
+          { name: 'Fernanda Lima Santos', phone: '(21) 99888-7766', active: true },
+          { name: 'Gabriel Ferreira Ramos', phone: '(31) 98456-1122', active: false }
+        ];
+
+        const displayList = searchText ? [studentsList[0]] : studentsList;
+
+        displayList.forEach((st, idx) => {
+          const rowY = searchY + 70 + idx * 72;
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+          roundRect(ctx, 80, rowY, 1120, 60, 14);
+          ctx.fill();
+          ctx.strokeStyle = st.name.includes('Ana') && searchText ? '#3b82f6' : 'rgba(255, 255, 255, 0.05)';
+          ctx.stroke();
+
+          // Avatar / Inicial
+          ctx.fillStyle = st.active ? '#1e3a8a' : '#334155';
+          roundRect(ctx, 95, rowY + 10, 40, 40, 10);
+          ctx.fill();
+          ctx.fillStyle = st.active ? '#93c5fd' : '#94a3b8';
+          ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(st.name.charAt(0), 115, rowY + 35);
+
+          // Nome e Telefone
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(st.name, 150, rowY + 28);
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '500 12px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(`📞 ${st.phone}`, 150, rowY + 48);
+
+          // Badge Ativo / Inativo
+          if (st.active) {
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+            roundRect(ctx, 1060, rowY + 15, 115, 30, 8);
+            ctx.fill();
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('✓ Ativo', 1117, rowY + 35);
+          } else {
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.15)';
+            roundRect(ctx, 1060, rowY + 15, 115, 30, 8);
+            ctx.fill();
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Inativo', 1117, rowY + 35);
+          }
+        });
+
+        ctx.restore();
+      }
+
+      // --- CENA 4: DIÁRIO DE AULA & CHAMADA (17s - 24s) ---
+      else if (time < 24) {
+        slideName.textContent = 'Cena 4: Diário de Aula & Chamada';
+        const sceneTime = time - 17;
+        const progress = Math.min(sceneTime / 1.2, 1);
+        const ease = easeOutCubic(progress);
+        const alpha = sceneTime < 6.2 ? 1 : Math.max(0, (7 - sceneTime) / 0.8);
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('NOVA CHAMADA & DIÁRIO DE CLASSE', 80, 110);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 28px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Registro de Aulas e Chamada Interativa', 80, 145);
+
+        // Card do Formulário (Lado Esquerdo)
+        const leftW = 460;
+        const formY = 175 + (1 - ease) * 20;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        roundRect(ctx, 80, formY, leftW, 300, 20);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('TEMA DA AULA', 105, formY + 35);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Planejamento Estratégico & OKRs', 105, formY + 65);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('PRELETOR / PROFESSOR', 105, formY + 115);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Prof. Dr. Ricardo Fontana', 105, formY + 145);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('DATA DA AULA', 105, formY + 195);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('24 de Agosto de 2026', 105, formY + 225);
+
+        // Botão Salvar
+        ctx.fillStyle = '#2563eb';
+        roundRect(ctx, 105, formY + 245, 200, 38, 12);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('💾 Salvar Diário de Aula', 125, formY + 269);
+
+        // Grade de Chamada (Lado Direito)
+        const rightX = 570;
+        const rightW = 630;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        roundRect(ctx, rightX, formY, rightW, 300, 20);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.stroke();
+
+        // Topo da chamada com contador
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Lista de Chamada em Tempo Real', rightX + 25, formY + 35);
+
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+        roundRect(ctx, rightX + rightW - 190, formY + 15, 165, 30, 8);
+        ctx.fill();
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('9 de 10 Presentes (90%)', rightX + rightW - 178, formY + 35);
+
+        // Alunos na chamada simulada
+        const attendanceDemo = [
+          { name: 'Ana Beatriz Souza', present: true },
+          { name: 'Carlos Eduardo Pereira', present: true },
+          { name: 'Fernanda Lima Santos', present: true },
+          { name: 'Gabriel Ferreira Ramos', present: sceneTime > 2.5 }
+        ];
+
+        attendanceDemo.forEach((item, i) => {
+          const itemY = formY + 60 + i * 54;
+          ctx.fillStyle = item.present ? 'rgba(6, 78, 59, 0.5)' : 'rgba(153, 27, 27, 0.4)';
+          roundRect(ctx, rightX + 25, itemY, rightW - 50, 44, 10);
+          ctx.fill();
+          ctx.strokeStyle = item.present ? '#059669' : '#dc2626';
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(item.name, rightX + 45, itemY + 27);
+
+          if (item.present) {
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('✓ PRESENTE', rightX + rightW - 145, itemY + 27);
+          } else {
+            ctx.fillStyle = '#f87171';
+            ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('✕ FALTA', rightX + rightW - 120, itemY + 27);
+          }
+        });
+
+        ctx.restore();
+      }
+
+      // --- CENA 5: RELATÓRIO GERAL & CSV (24s - 30s) ---
+      else {
+        slideName.textContent = 'Cena 5: Relatórios & Encerramento';
+        const sceneTime = time - 24;
+        const progress = Math.min(sceneTime / 1.2, 1);
+        const ease = easeOutCubic(progress);
+
+        ctx.save();
+
+        if (sceneTime < 3.5) {
+          // Relatório Matriz
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#06b6d4';
+          ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('MATRIZ GERAL & EXPORTAÇÃO', 80, 110);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 28px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('Frequência Consolidada e Download em CSV', 80, 145);
+
+          // Tabela Estilizada
+          const tableY = 175 + (1 - ease) * 20;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+          roundRect(ctx, 80, tableY, 1120, 240, 16);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+          ctx.stroke();
+
+          // Cabeçalho da Tabela
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+          ctx.fillRect(80, tableY, 1120, 40);
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('ALUNO', 110, tableY + 25);
+          ctx.fillText('10/08', 500, tableY + 25);
+          ctx.fillText('17/08', 580, tableY + 25);
+          ctx.fillText('24/08', 660, tableY + 25);
+          ctx.fillText('31/08', 740, tableY + 25);
+          ctx.fillText('TOTAL P', 850, tableY + 25);
+          ctx.fillText('% FREQ', 980, tableY + 25);
+
+          // Linhas da tabela
+          const reportRows = [
+            { name: 'Ana Beatriz Souza', a: ['P','P','P','P'], tot: 4, pct: '100%' },
+            { name: 'Carlos Eduardo Pereira', a: ['P','P','P','F'], tot: 3, pct: '75%' },
+            { name: 'Fernanda Lima Santos', a: ['P','F','P','P'], tot: 3, pct: '75%' },
+            { name: 'Gabriel Ferreira Ramos', a: ['F','P','P','P'], tot: 3, pct: '75%' }
+          ];
+
+          reportRows.forEach((r, i) => {
+            const rowY = tableY + 45 + i * 45;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(r.name, 110, rowY + 26);
+
+            r.a.forEach((val, ci) => {
+              ctx.fillStyle = val === 'P' ? '#34d399' : '#f87171';
+              ctx.fillText(val, 510 + ci * 80, rowY + 26);
+            });
+
+            ctx.fillStyle = '#60a5fa';
+            ctx.fillText(r.tot.toString(), 870, rowY + 26);
+
+            // Badge %
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+            roundRect(ctx, 970, rowY + 8, 65, 26, 6);
+            ctx.fill();
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText(r.pct, 985, rowY + 25);
+          });
+
+          // Botões de Ação em Baixo
+          ctx.fillStyle = '#10b981';
+          roundRect(ctx, 80, tableY + 255, 260, 44, 12);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('📥 Exportar Planilha (CSV)', 105, tableY + 282);
+
+          ctx.fillStyle = '#2563eb';
+          roundRect(ctx, 360, tableY + 255, 260, 44, 12);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText('🖨️ Imprimir Paisagem', 390, tableY + 282);
+        } else {
+          // Tela Final / CTA
+          const finalEase = easeOutCubic(Math.min((sceneTime - 3.5) / 0.8, 1));
+          ctx.textAlign = 'center';
+
+          // Glow central
+          const glow = ctx.createRadialGradient(640, 360, 10, 640, 360, 300);
+          glow.addColorStop(0, 'rgba(37, 99, 235, 0.3)');
+          glow.addColorStop(1, 'rgba(37, 99, 235, 0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(640, 360, 300, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#2563eb';
+          roundRect(ctx, 640 - 50, 240 - 50, 100, 100, 24);
+          ctx.fill();
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.font = '48px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText('📖', 640, 255);
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 44px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('WebClass', 640, 340);
+
+          ctx.fillStyle = '#93c5fd';
+          ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('A Solução Definitiva em Diário de Classe Digital', 640, 380);
+
+          ctx.fillStyle = '#64748b';
+          ctx.font = '500 15px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('Simples • Rápido • 100% Responsivo • Gratuito & Open Source', 640, 420);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    function startAnimationAndRecording() {
+      if (isRunning) return;
+      isRunning = true;
+      statusAlert.classList.add('hidden');
+      btnDownload.classList.add('hidden');
+      recordingBadge.classList.remove('hidden');
+
+      recordedChunks = [];
+      const stream = canvas.captureStream(60); // 60 FPS
+      
+      let options = { mimeType: 'video/webm;codecs=vp9' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm' };
+      }
+
+      mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          recordedChunks.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+        const videoUrl = URL.createObjectURL(recordedBlob);
+        btnDownload.href = videoUrl;
+        btnDownload.download = 'webclass_apresentacao_30s.webm';
+        btnDownload.classList.remove('hidden');
+        statusAlert.classList.remove('hidden');
+        recordingBadge.classList.add('hidden');
+
+        // Se houver servidor local escutando /save-video, envia automaticamente
+        fetch('/save-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'video/webm' },
+          body: recordedBlob
+        }).then(r => r.text()).then(res => {
+          console.log('[WebClass] Vídeo salvo automaticamente no servidor:', res);
+        }).catch(() => {});
+      };
+
+      mediaRecorder.start();
+      startTime = performance.now();
+
+      function step(now) {
+        const elapsed = (now - startTime) / 1000;
+        const currentSec = Math.min(elapsed, TOTAL_DURATION);
+
+        // Atualiza relógio e barra
+        const secs = Math.floor(currentSec);
+        const ms = Math.floor((currentSec % 1) * 10);
+        timeDisplay.textContent = `00:${secs.toString().padStart(2, '0')}.${ms} / 00:30`;
+        progressBar.style.width = `${(currentSec / TOTAL_DURATION) * 100}%`;
+
+        render(currentSec);
+
+        if (elapsed < TOTAL_DURATION) {
+          requestAnimationFrame(step);
+        } else {
+          isRunning = false;
+          mediaRecorder.stop();
+          render(TOTAL_DURATION);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    btnPlay.addEventListener('click', () => {
+      startAnimationAndRecording();
+    });
+
+    // Inicia automaticamente no carregamento
+    window.addEventListener('load', () => {
+      setTimeout(startAnimationAndRecording, 500);
+    });
+  </script>
+</body>
+</html>
